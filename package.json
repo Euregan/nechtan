@@ -1,0 +1,25 @@
+{
+  "name": "sql-parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:dev": "elm make --output public/js/app.js src/Main.elm --debug",
+    "build:watch": "nodemon --watch src --ext elm --exec \"clear && npm run build:dev\"",
+    "test": "elm-test",
+    "test:watch": "nodemon --watch src --watch tests --ext elm --exec \"clear && npm run test\"",
+    "serve": "http-server -c-1 public"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "codemirror": "^5.55.0",
+    "elm": "^0.19.1-3",
+    "elm-test": "^0.19.1-revision2"
+  },
+  "devDependencies": {
+    "http-server": "^0.12.3",
+    "nodemon": "^2.0.4",
+    "prettier": "^2.0.5"
+  }
+}
