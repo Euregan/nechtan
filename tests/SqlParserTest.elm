@@ -13,59 +13,95 @@ import Data.Table exposing (Table)
 
 createUserTable : String
 createUserTable =
-  """CREATE TABLE utilisateur
+  """CREATE TABLE user
 (
   id INT PRIMARY KEY NOT NULL,
   firstName VARCHAR(100),
   lastName VARCHAR(100),
   email VARCHAR(255),
-  birthday DATE,
+  address1 VARCHAR(255),
+  address2 VARCHAR(255),
+  address3 VARCHAR(255),
   country VARCHAR(255),
   city VARCHAR(255),
-  zipCode VARCHAR(5),
-  purchaseCount INT
+  zipCode VARCHAR(5)
 );"""
 
-createCountryTable : String
-createCountryTable =
-  """CREATE TABLE `Country` (
-  `CountryId` char(3) COLLATE latin1_general_ci NOT NULL DEFAULT '',
-  `Name` varchar(100) COLLATE latin1_general_ci NOT NULL DEFAULT '',
-  `Language` char(2) COLLATE latin1_general_ci NOT NULL DEFAULT '',
-  `RegionId` char(20) COLLATE latin1_general_ci,
-  PRIMARY KEY (`CountryId`,`Language`)
-  CONSTRAINT `region_idfk` FOREIGN KEY (`RegionId`) REFERENCES `Region` (`RegionId`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;"""
+createOrderTable : String
+createOrderTable =
+  """CREATE TABLE order
+(
+  id INT PRIMARY KEY NOT NULL,
+  user INT,
+  FOREIGN KEY (user) REFERENCES user(id)
+);"""
 
-createRegionTable : String
-createRegionTable =
-  """CREATE TABLE `Region` (
-  `RegionId` char(20) COLLATE latin1_general_ci NOT NULL,
-  `Name` varchar(100) COLLATE latin1_general_ci NOT NULL,
-  `Position` tinyint NOT NULL UNIQUE,
-  PRIMARY KEY (`RegionId`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;"""
+createOrderProductTable : String
+createOrderProductTable =
+  """CREATE TABLE order_product
+(
+  order INT,
+  product INT,
+  FOREIGN KEY (order) REFERENCES order(id),
+  FOREIGN KEY (product) REFERENCES product(id)
+);"""
+
+createProductTable : String
+createProductTable =
+  """CREATE TABLE product
+(
+  id INT PRIMARY KEY NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  price FLOAT NOT NULL
+);"""
 
 userTable : Table
 userTable =
   Table
-    "utilisateur"
+    "user"
     [ Field "id" INT [PrimaryKey, NotNullable]
     , Field "firstName" (VARCHAR 100) []
     , Field "lastName" (VARCHAR 100) []
     , Field "email" (VARCHAR 255) []
-    , Field "birthday" DATE []
+    , Field "address1" (VARCHAR 255) []
+    , Field "address2" (VARCHAR 255) []
+    , Field "address3" (VARCHAR 255) []
     , Field "country" (VARCHAR 255) []
     , Field "city" (VARCHAR 255) []
     , Field "zipCode" (VARCHAR 5) []
-    , Field "purchaseCount" INT []
+    ]
+
+orderTable : Table
+orderTable =
+  Table
+    "order"
+    [ Field "id" INT [PrimaryKey, NotNullable]
+    , Field "user" INT [ForeignKey "user" "id"]
+    ]
+
+orderProductTable : Table
+orderProductTable =
+  Table
+    "order_product"
+    [ Field "order" INT [ForeignKey "order" "id"]
+    , Field "product" INT [ForeignKey "product" "id"]
+    ]
+
+productTable : Table
+productTable =
+  Table
+    "product"
+    [ Field "id" INT [PrimaryKey, NotNullable]
+    , Field "name" (VARCHAR 100) [NotNullable]
+    , Field "price" FLOAT [NotNullable]
     ]
 
 suite : Test
 suite =
   describe "The SqlParserModule"
     [ describe "create table"
-      [ test "works for a complete table declaration" <|
-        \_ -> Expect.equal (Ok userTable) (run createTable createUserTable)
+      [ test "works for complete table declarations" <|
+        \_ -> Expect.equal [Ok userTable, Ok orderTable, Ok orderProductTable, Ok productTable] <|
+          List.map (run createTable) [createUserTable, createOrderTable, createOrderProductTable, createProductTable]
       ]
     ]

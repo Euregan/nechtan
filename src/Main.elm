@@ -49,7 +49,7 @@ productTable =
   Table
     "product"
     [ Field "id" INT [PrimaryKey, NotNullable]
-    , Field "name" INT [PrimaryKey, NotNullable]
+    , Field "name" (VARCHAR 100) [NotNullable]
     , Field "price" FLOAT [NotNullable]
     ]
 

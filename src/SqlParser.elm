@@ -45,6 +45,7 @@ kind =
     [ map (\_ -> TINYINT) <| symbol "TINYINT"
     , map (\_ -> INT) <| symbol "INT"
     , map (\_ -> DATE) <| symbol "DATE"
+    , map (\_ -> FLOAT) <| symbol "FLOAT"
     , map VARCHAR <| succeed (\x -> x)
       |. symbol "VARCHAR("
       |= int
@@ -62,6 +63,27 @@ modifier =
     , map (\_ -> NotNullable) <| symbol "NOT NULL"
     ]
 
+foreignKey : Parser (String, Modifier)
+foreignKey =
+  succeed (\f foreignTable foreignField -> (f, ForeignKey foreignTable foreignField))
+    |. keyword "FOREIGN KEY"
+    |. spaces
+    |. symbol "("
+    |. spaces
+    |= identifier
+    |. spaces
+    |. symbol ")"
+    |. spaces
+    |. keyword "REFERENCES"
+    |. spaces
+    |= identifier
+    |. spaces
+    |. symbol "("
+    |. spaces
+    |= identifier
+    |. spaces
+    |. symbol ")"
+
 field : Parser Field
 field =
   succeed Field
@@ -78,6 +100,31 @@ field =
       , trailing = Forbidden
       }
 
+definitions : Parser (List Field)
+definitions =
+  succeed (\x -> x)
+    |. symbol "("
+    |. spaces
+    |= loop [] (\fields -> oneOf
+      [ backtrackable <| succeed (\f -> Loop (f :: fields))
+        |. spaces
+        |= field
+      , backtrackable <| succeed (\f -> Loop (f :: fields))
+        |. spaces
+        |. symbol ","
+        |. spaces
+        |= field
+      , backtrackable <| succeed (\(fieldName, fieldModifier) -> Loop (List.map (\f -> if f.name == fieldName then { f | modifiers = fieldModifier :: f.modifiers } else f) fields))
+        |. spaces
+        |. symbol ","
+        |. spaces
+        |= foreignKey
+      , succeed ()
+          |> map (\_ -> Done <| List.reverse fields)
+      ] )
+    |. spaces
+    |. symbol ")"
+
 createTable : Parser Table
 createTable =
   succeed Table
@@ -85,7 +132,7 @@ createTable =
     |. spaces
     |= identifier
     |. spaces
-    |= list field
+    |= definitions
     |. spaces
     |. symbol ";"
     |. end
