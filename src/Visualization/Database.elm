@@ -58,7 +58,7 @@ tablesPositions database =
           { acc
           | x = (if newColumn then acc.x + acc.maxColumnWidth + spacing else acc.x)
           , y = (if newColumn then padding + tableSize.height else acc.y + tableSize.height)
-          , maxColumnWidth = if newColumn then Basics.max acc.maxColumnWidth tableSize.width else tableSize.width
+          , maxColumnWidth = if newColumn then tableSize.width else Basics.max acc.maxColumnWidth tableSize.width
           , list =
             ( Point (if newColumn then acc.x + acc.maxColumnWidth + spacing else acc.x) (y + padding)
             , tableSize
