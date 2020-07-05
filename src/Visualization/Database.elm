@@ -10,18 +10,28 @@ import Data.Database exposing (Database)
 import Data.Modifier exposing (Modifier(..))
 
 
+type LinkDirection
+  = Left
+  | Right
+
 padding = 20
 spacing = 50
 
-link : Point -> Point -> Svg msg
-link start end =
+linkDirection : LinkDirection -> Float -> Float
+linkDirection direction control =
+  case direction of
+    Left -> control * -1
+    Right -> control
+
+link : (Point, LinkDirection) -> (Point, LinkDirection) -> Svg msg
+link (start, startDirection) (end, endDirection) =
   g []
     [ circle [ cx <| String.fromFloat start.x, cy <| String.fromFloat start.y, r "3" ] []
     , circle [ cx <| String.fromFloat end.x, cy <| String.fromFloat end.y, r "3" ] []
     , Svg.path
       [ d <| "M " ++ String.fromFloat start.x ++ " " ++ String.fromFloat start.y
-        ++ " C " ++ String.fromFloat (start.x + spacing / 2) ++ " " ++ String.fromFloat start.y
-        ++ ", " ++ String.fromFloat (end.x + spacing / 2 * (if end.x > start.x then -1 else 1)) ++ " " ++ String.fromFloat end.y
+        ++ " C " ++ String.fromFloat (start.x + linkDirection startDirection (spacing / 2)) ++ " " ++ String.fromFloat start.y
+        ++ ", " ++ String.fromFloat (end.x + linkDirection endDirection (spacing / 2)) ++ " " ++ String.fromFloat end.y
         ++ ", " ++ String.fromFloat end.x ++ " " ++ String.fromFloat end.y
       , fill "none"
       , stroke "black"
@@ -122,8 +132,18 @@ links database =
                                   foreignPosition.x
                               start = Point fromX (tablePosition.y + (Table.fieldY fieldIndex) + padding)
                               end = Point toX (foreignPosition.y + (Table.fieldY foreignFieldPosition) + padding)
+                              startDirection =
+                                if fromX == tablePosition.x then
+                                  Left
+                                else
+                                  Right
+                              endDirection =
+                                if toX == foreignPosition.x then
+                                  Left
+                                else
+                                  Right
                             in
-                              link start end
+                              link (start, startDirection) (end, endDirection)
                           _ -> text ""
                       Nothing -> text ""
                   _ -> text ""
