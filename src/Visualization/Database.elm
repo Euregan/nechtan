@@ -6,6 +6,7 @@ import Visualization.Table as Table
 import Data.Point exposing (Point)
 import Data.Size exposing (Size)
 import Data.Table exposing (Table)
+import Data.Database exposing (Database)
 import Data.Modifier exposing (Modifier(..))
 
 
@@ -136,7 +137,7 @@ links database =
         tablesWithPositions
       )
 
-graph : Size -> List Table -> Svg msg
+graph : Size -> Database -> Svg msg
 graph {width, height} database =
   svg
     [ viewBox <| "0 0 " ++ (String.fromFloat width) ++ " " ++ (String.fromFloat height)
@@ -155,7 +156,7 @@ graph {width, height} database =
             ]
           ]
         ]
-      , links database
-      , tables database
+      , links database.tables
+      , tables database.tables
       ]
     )

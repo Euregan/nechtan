@@ -10,6 +10,11 @@ import Data.Type exposing (Type(..))
 import Data.Modifier exposing (Modifier(..))
 import Data.Field exposing (Field)
 import Data.Table exposing (Table)
+import Data.Database exposing (Database)
+
+createMarketplaceDatabase : String
+createMarketplaceDatabase =
+  "CREATE DATABASE marketplace;"
 
 createUserTable : String
 createUserTable =
@@ -96,6 +101,16 @@ productTable =
     , Field "price" FLOAT [NotNullable]
     ]
 
+marketplaceDatabase : Database
+marketplaceDatabase =
+  Database
+    "marketplace"
+    [ userTable
+    , orderTable
+    , orderProductTable
+    , productTable
+    ]
+
 suite : Test
 suite =
   describe "The SqlParserModule"
@@ -103,5 +118,10 @@ suite =
       [ test "works for complete table declarations" <|
         \_ -> Expect.equal [Ok userTable, Ok orderTable, Ok orderProductTable, Ok productTable] <|
           List.map (run createTable) [createUserTable, createOrderTable, createOrderProductTable, createProductTable]
+      ]
+    , describe "create database"
+      [ test "works for a complete database declaration" <|
+        \_ -> Expect.equal (Ok marketplaceDatabase) <|
+          run createDatabase (List.foldr (\curr acc -> curr ++ "\n" ++ acc) "" [createMarketplaceDatabase, createUserTable, createOrderTable, createOrderProductTable, createProductTable])
       ]
     ]

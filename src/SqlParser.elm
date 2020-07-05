@@ -6,6 +6,7 @@ import Data.Type exposing (Type(..))
 import Data.Modifier exposing (Modifier(..))
 import Data.Field exposing (Field)
 import Data.Table exposing (Table)
+import Data.Database exposing (Database)
 
 
 maybe : Parser a -> Parser (Maybe a)
@@ -133,6 +134,22 @@ createTable =
     |= identifier
     |. spaces
     |= definitions
+
+createDatabase : Parser Database
+createDatabase =
+  succeed Database
+    |. keyword "CREATE DATABASE"
+    |. spaces
+    |= identifier
     |. spaces
     |. symbol ";"
-    |. end
+    |. spaces
+    |= loop [] (\tables -> oneOf
+      [ backtrackable <| succeed (\table -> Loop (table :: tables))
+        |. spaces
+        |= createTable
+        |. spaces
+        |. symbol ";"
+      , succeed ()
+          |> map (\_ -> Done <| List.reverse tables)
+      ] )

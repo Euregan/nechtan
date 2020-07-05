@@ -6,8 +6,9 @@ import Html.Attributes exposing (value, id)
 import Html.Events exposing (onInput)
 import Data.Size exposing (Size)
 import Data.Table exposing (Table)
+import Data.Database exposing (Database)
 import Parser exposing (DeadEnd, Problem(..), run)
-import SqlParser exposing (createTable)
+import SqlParser exposing (createDatabase)
 import Visualization.Database as Database
 
 
@@ -57,14 +58,14 @@ productTable =
 main : Program () Model Msg
 main =
   Browser.element
-    { init = \_ -> (Model [orderProductTable, productTable, orderTable, userTable] [] (Size 0 0), Cmd.none)
+    { init = \_ -> (Model (Database "marketplace" [orderProductTable, productTable, orderTable, userTable]) [] (Size 0 0), Cmd.none)
     , update = update
     , view = view
     , subscriptions = subscriptions
     }
 
 type alias Model =
-  { database: List Table
+  { database: Database
   , errors: List DeadEnd
   , schemaSize: Size
   }
@@ -76,9 +77,9 @@ type Msg
 update msg model =
   case msg of
     UpdatedQuery query ->
-      case run createTable query of
+      case run createDatabase query of
         Ok result ->
-          ( { model | errors = [], database = [result] }
+          ( { model | errors = [], database = result }
           , Cmd.none
           )
         Err errors ->
